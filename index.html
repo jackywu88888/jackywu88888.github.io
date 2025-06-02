@@ -215,23 +215,63 @@
         downloadBtn.style.fontWeight = "bold";
 
         downloadBtn.onclick = () => {
-          const cleanWrapper = qrWrapper.cloneNode(true);
-          cleanWrapper.querySelector("div:last-child").remove(); // 移除說明
-          cleanWrapper.querySelector("div div:last-child")?.remove(); // 移除下載按鈕
-          const tempContainer = document.createElement("div");
-          tempContainer.style.position = "fixed";
-          tempContainer.style.left = "-9999px";
-          document.body.appendChild(tempContainer);
-          tempContainer.appendChild(cleanWrapper);
 
-          html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
-            const link = document.createElement("a");
-            link.download = `${idLabel.textContent}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            document.body.removeChild(tempContainer);
-          });
-        };
+         
+  const tempDiv = document.createElement("div");
+  tempDiv.style.position = "fixed";
+  tempDiv.style.left = "-9999px";
+  tempDiv.style.top = "0";
+  tempDiv.style.backgroundColor = "#fff";
+  tempDiv.style.padding = "10px";
+  tempDiv.style.fontSize = "14px";
+  tempDiv.style.fontWeight = "bold";
+  document.body.appendChild(tempDiv);
+
+  // 複製 ID
+  const idCopy = idLabel.cloneNode(true);
+  tempDiv.appendChild(idCopy);
+
+  // 複製 QR Canvas（直接抓 canvas 而非 clone 整塊）
+  const qrCanvas = qrWrapper.querySelector("canvas");
+  if (!qrCanvas) {
+    alert("找不到 QR 圖碼，請稍後再試");
+    document.body.removeChild(tempDiv);
+    return;
+  }
+
+  const clonedCanvas = qrCanvas.cloneNode(true);
+  tempDiv.appendChild(clonedCanvas);
+
+  html2canvas(tempDiv, { scale: 2, useCORS: true }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = `${idLabel.textContent}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    document.body.removeChild(tempDiv);
+  }).catch(err => {
+    alert("下載圖片失敗，請稍後再試");
+    console.error(err);
+    document.body.removeChild(tempDiv);
+  });
+};
+
+          //   const cleanWrapper = qrWrapper.cloneNode(true);
+       //   cleanWrapper.querySelector("div:last-child").remove(); // 移除說明
+       //   cleanWrapper.querySelector("div div:last-child")?.remove(); // 移除下載按鈕
+   //       const tempContainer = document.createElement("div");
+   //         tempContainer.style.position = "fixed";
+  //          tempContainer.style.left = "-9999px";
+    //       document.body.appendChild(tempContainer);
+     //      tempContainer.appendChild(cleanWrapper);
+
+       //    html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
+       //     const link = document.createElement("a");
+       //       link.download = `${idLabel.textContent}.png`;
+       //       link.href = canvas.toDataURL("image/png");
+       //         link.click();
+        //     document.body.removeChild(tempContainer);
+         //  });
+       //  };
 
         header.appendChild(idLabel);
         header.appendChild(downloadBtn);
