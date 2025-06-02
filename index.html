@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>QR Code 產生器</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 1rem;
@@ -12,134 +16,169 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background-color: #f8f8f8;
     }
+
     h2 {
       font-size: 1.5rem;
+      font-weight: bold;
       margin-bottom: 1rem;
-      text-align: center;
     }
+
     p {
       font-size: 1rem;
+      font-weight: bold;
       color: red;
       text-align: center;
-      max-width: 90%;
+      margin-bottom: 1rem;
     }
+
     form {
-      display: flex;
-      flex-direction: column;
       width: 100%;
       max-width: 500px;
-      gap: 0.75rem;
-      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
-    label {
-      font-weight: bold;
-    }
+
     input, select, button {
-      padding: 0.5rem;
       font-size: 1rem;
+      padding: 0.5rem;
       width: 100%;
-      box-sizing: border-box;
     }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
     .qrcode-container {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 1rem;
       width: 100%;
-      max-width: 500px;
+      max-width: 1000px;
+      margin-top: 1rem;
     }
+
     .qr-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       background-color: #fff;
-      padding: 1rem;
+      padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      width: 100%;
-      box-sizing: border-box;
-      position: relative;
     }
-    .qr-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-    }
-    .barcode-description div {
+
+    .barcode-description {
       font-size: 0.9rem;
-      margin-top: 0.2rem;
+      line-height: 1.4;
+      margin-top: 0.5rem;
+      word-break: break-all;
     }
-    .download-btn {
-      color: #d00;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: bold;
+
+    @media screen and (max-width: 600px) {
+      .qr-wrapper {
+        width: 100%;
+        align-items: center;
+      }
     }
   </style>
 </head>
 <body>
   <p>使用信用卡條碼產生器須自行承擔「飛到外太空之未入帳」的可能風險</p>
+
   <h2>QR Code 產生器</h2>
+
   <form id="barcodeForm">
-    <label>選擇條碼類型:<select id="barcodeType">
+    <label>選擇條碼類型:</label>
+    <select id="barcodeType">
       <option value="YYMM">年+月</option>
       <option value="MMDD">月+日</option>
-    </select></label>
+    </select>
 
-    <label>第一段條碼 (9碼):<input type="text" id="firstBarcode" required></label>
-    <label>第二段條碼 (16碼):<input type="text" id="secondBarcode" required></label>
-    <label>繳費期限 (YYYMMDD):<input type="text" id="paymentDue" required></label>
-    <label>繳費金額:<input type="text" id="paymentAmount" required></label>
-    <label>生成 QR Code 數量:<select id="qrCount">
+    <label>第一段條碼 (9碼):</label>
+    <input type="text" id="firstBarcode" required />
+
+    <label>第二段條碼 (16碼):</label>
+    <input type="text" id="secondBarcode" required />
+
+    <label>繳費期限 (YYYMMDD):</label>
+    <input type="text" id="paymentDue" required />
+
+    <label>繳費金額:</label>
+    <input type="text" id="paymentAmount" required />
+
+    <label>生成 QR Code 數量:</label>
+    <select id="qrCount">
       <option value="1">1</option>
       <option value="10">10</option>
       <option value="20">20</option>
       <option value="30">30</option>
       <option value="40">40</option>
       <option value="50">50</option>
-    </select></label>
+    </select>
 
     <button type="button" onclick="generateQRCode()">生成 QR Code</button>
   </form>
 
-  <div id="qrcodeContainer" class="qrcode-container"></div>
+  <div class="qrcode-container" id="qrcodeContainer" style="display: none;"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     function convertLettersToNumbers(str) {
-      return str.toUpperCase().replace(/[A-Z]/g, c => (c.charCodeAt(0) - 55).toString());
+      return str.toUpperCase().split('').map(char => {
+        if (char >= 'A' && char <= 'Z') {
+          return (char.charCodeAt(0) - 55).toString(); // A=10
+        } else {
+          return char;
+        }
+      }).join('');
     }
+
     function sumOdd(str) {
-      return str.split('').reduce((acc, ch, i) => i % 2 === 0 ? acc + parseInt(ch) : acc, 0);
+      return [...str].filter((_, i) => i % 2 === 0).reduce((sum, char) => sum + parseInt(char || 0), 0);
     }
+
     function sumEven(str) {
-      return str.split('').reduce((acc, ch, i) => i % 2 === 1 ? acc + parseInt(ch) : acc, 0);
+      return [...str].filter((_, i) => i % 2 !== 0).reduce((sum, char) => sum + parseInt(char || 0), 0);
     }
+
     function generateQRCode() {
-      const firstBarcode = document.getElementById("firstBarcode").value;
-      const secondBarcode = document.getElementById("secondBarcode").value;
-      const paymentDue = document.getElementById("paymentDue").value;
-      const paymentAmount = document.getElementById("paymentAmount").value;
+      const firstBarcode = document.getElementById("firstBarcode").value.trim();
+      const secondBarcode = document.getElementById("secondBarcode").value.trim();
+      const paymentDue = document.getElementById("paymentDue").value.trim();
+      const paymentAmount = document.getElementById("paymentAmount").value.trim();
       const barcodeType = document.getElementById("barcodeType").value;
       const qrCount = parseInt(document.getElementById("qrCount").value);
 
       if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
-        alert("請填寫所有欄位");
+        alert("請填寫所有欄位！");
         return;
       }
 
       const container = document.getElementById("qrcodeContainer");
       container.innerHTML = "";
+      container.style.display = "flex";
 
-      let currentDate = new Date(parseInt(paymentDue.substring(0, 3)) + 1911, parseInt(paymentDue.substring(3, 5)) - 1, parseInt(paymentDue.substring(5, 7)));
+      let currentDate = new Date(
+        parseInt(paymentDue.substring(0, 3), 10) + 1911,
+        parseInt(paymentDue.substring(3, 5), 10) - 1,
+        parseInt(paymentDue.substring(5, 7), 10)
+      );
 
       for (let i = 0; i < qrCount; i++) {
         let formattedDate;
         if (barcodeType === "YYMM") {
           if (i > 0) currentDate.setMonth(currentDate.getMonth() + 1);
-          formattedDate = `${(currentDate.getFullYear() - 1911).toString().padStart(3, "0")}${(currentDate.getMonth() + 1).toString().padStart(2, "0")}01`;
+          formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
         } else {
-          formattedDate = `${(currentDate.getFullYear() - 1911).toString().padStart(3, "0")}${(currentDate.getMonth() + 1).toString().padStart(2, "0")}${currentDate.getDate().toString().padStart(2, "0")}`;
+          formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
@@ -157,54 +196,59 @@
         const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
         const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
 
-        const wrapper = document.createElement("div");
-        wrapper.className = "qr-wrapper";
+        const qrWrapper = document.createElement("div");
+        qrWrapper.className = "qr-wrapper";
 
         const header = document.createElement("div");
-        header.className = "qr-header";
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.width = "100%";
 
         const idLabel = document.createElement("div");
         idLabel.textContent = `ID_${i + 1}`;
+        idLabel.style.fontWeight = "bold";
 
         const downloadBtn = document.createElement("div");
-        downloadBtn.className = "download-btn";
         downloadBtn.textContent = "圖檔下載";
-        downloadBtn.onclick = () => {
-          const temp = wrapper.cloneNode(true);
-          temp.querySelector(".download-btn").remove();
-          temp.querySelector(".barcode-description").remove();
-          const hiddenContainer = document.createElement("div");
-          hiddenContainer.style.position = "fixed";
-          hiddenContainer.style.left = "-9999px";
-          hiddenContainer.appendChild(temp);
-          document.body.appendChild(hiddenContainer);
+        downloadBtn.style.color = "red";
+        downloadBtn.style.cursor = "pointer";
+        downloadBtn.style.fontWeight = "bold";
 
-          html2canvas(temp, { backgroundColor: "#fff" }).then(canvas => {
+        downloadBtn.onclick = () => {
+          const cleanWrapper = qrWrapper.cloneNode(true);
+          cleanWrapper.querySelector("div:last-child").remove(); // 移除說明
+          cleanWrapper.querySelector("div div:last-child")?.remove(); // 移除下載按鈕
+          const tempContainer = document.createElement("div");
+          tempContainer.style.position = "fixed";
+          tempContainer.style.left = "-9999px";
+          document.body.appendChild(tempContainer);
+          tempContainer.appendChild(cleanWrapper);
+
+          html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
             const link = document.createElement("a");
             link.download = `${idLabel.textContent}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
-            document.body.removeChild(hiddenContainer);
+            document.body.removeChild(tempContainer);
           });
         };
 
         header.appendChild(idLabel);
         header.appendChild(downloadBtn);
-        wrapper.appendChild(header);
+        qrWrapper.appendChild(header);
 
         const qrDiv = document.createElement("div");
         new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
-        wrapper.appendChild(qrDiv);
+        qrWrapper.appendChild(qrDiv);
 
         const desc = document.createElement("div");
         desc.className = "barcode-description";
         desc.innerHTML = `<div>${firstBarcode}</div><div>${secondBarcode}</div><div>${thirdBarcode}</div>`;
-        wrapper.appendChild(desc);
+        qrWrapper.appendChild(desc);
 
-        container.appendChild(wrapper);
+        container.appendChild(qrWrapper);
       }
     }
   </script>
 </body>
 </html>
-
