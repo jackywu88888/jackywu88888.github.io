@@ -1,143 +1,153 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code 產生器</title>
   <style>
     body {
+      margin: 0;
+      padding: 1rem;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
-      font-family: Arial, sans-serif;
+      background-color: #f8f8f8;
     }
     h2 {
-      font-size: 24px;
-      font-weight: bold;
+      font-size: 1.5rem;
       margin-bottom: 1rem;
+      text-align: center;
     }
     p {
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 1rem;
       color: red;
       text-align: center;
+      max-width: 90%;
     }
     form {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      width: 100%;
+      max-width: 500px;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
     }
     .qrcode-container {
       display: flex;
-      align-items: flex-start;
-      gap: 0;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      max-width: 500px;
     }
-    .barcode-description {
-      text-align: left;
-      font-size: 16px;
-      line-height: 1.6;
-      margin-left: 12px;
+    .qr-wrapper {
+      background-color: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .qr-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .barcode-description div {
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+    }
+    .download-btn {
+      color: #d00;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <!-- 警示訊息 -->
   <p>使用信用卡條碼產生器須自行承擔「飛到外太空之未入帳」的可能風險</p>
-
   <h2>QR Code 產生器</h2>
-
-  <!-- 表單區塊，讓使用者輸入條碼資料與選擇產生方式 -->
   <form id="barcodeForm">
-    <label for="barcodeType">選擇條碼類型:</label>
-    <select id="barcodeType" name="barcodeType">
+    <label>選擇條碼類型:<select id="barcodeType">
       <option value="YYMM">年+月</option>
       <option value="MMDD">月+日</option>
-    </select>
+    </select></label>
 
-    <label for="firstBarcode">第一段條碼 (9碼):</label>
-    <input type="text" id="firstBarcode" required />
-
-    <label for="secondBarcode">第二段條碼 (16碼):</label>
-    <input type="text" id="secondBarcode" required />
-
-    <label for="paymentDue">繳費期限 (YYYMMDD):</label>
-    <input type="text" id="paymentDue" required />
-
-    <label for="paymentAmount">繳費金額:</label>
-    <input type="text" id="paymentAmount" required />
-
-    <label for="qrCount">選擇生成 QR Code 數量:</label>
-    <select id="qrCount" name="qrCount">
+    <label>第一段條碼 (9碼):<input type="text" id="firstBarcode" required></label>
+    <label>第二段條碼 (16碼):<input type="text" id="secondBarcode" required></label>
+    <label>繳費期限 (YYYMMDD):<input type="text" id="paymentDue" required></label>
+    <label>繳費金額:<input type="text" id="paymentAmount" required></label>
+    <label>生成 QR Code 數量:<select id="qrCount">
       <option value="1">1</option>
       <option value="10">10</option>
       <option value="20">20</option>
       <option value="30">30</option>
       <option value="40">40</option>
       <option value="50">50</option>
-    </select>
+    </select></label>
 
-    <!-- 按鈕：執行條碼與 QR Code 產生 -->
     <button type="button" onclick="generateQRCode()">生成 QR Code</button>
   </form>
 
-  <!-- QR Code 顯示區塊 -->
-  <div class="qrcode-container" id="qrcodeContainer" style="display: none;"></div>
+  <div id="qrcodeContainer" class="qrcode-container"></div>
 
-  <!-- 引入 QRCode.js 與 html2canvas 以支援 QR 產生與截圖下載 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
   <script>
-    // 主函式：根據表單內容產生 QR Code
+    function convertLettersToNumbers(str) {
+      return str.toUpperCase().replace(/[A-Z]/g, c => (c.charCodeAt(0) - 55).toString());
+    }
+    function sumOdd(str) {
+      return str.split('').reduce((acc, ch, i) => i % 2 === 0 ? acc + parseInt(ch) : acc, 0);
+    }
+    function sumEven(str) {
+      return str.split('').reduce((acc, ch, i) => i % 2 === 1 ? acc + parseInt(ch) : acc, 0);
+    }
     function generateQRCode() {
       const firstBarcode = document.getElementById("firstBarcode").value;
       const secondBarcode = document.getElementById("secondBarcode").value;
       const paymentDue = document.getElementById("paymentDue").value;
       const paymentAmount = document.getElementById("paymentAmount").value;
       const barcodeType = document.getElementById("barcodeType").value;
-      const qrCount = parseInt(document.getElementById("qrCount").value, 10);
+      const qrCount = parseInt(document.getElementById("qrCount").value);
 
-      // 檢查欄位是否填寫完整
       if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
-        alert("請填寫所有欄位並選擇有效的 QR Code 數量！");
+        alert("請填寫所有欄位");
         return;
       }
 
-      const qrcodeContainer = document.getElementById("qrcodeContainer");
-      qrcodeContainer.innerHTML = "";
+      const container = document.getElementById("qrcodeContainer");
+      container.innerHTML = "";
 
-      // 解析繳費日期
-      let currentDate = new Date(
-        parseInt(paymentDue.substring(0, 3), 10) + 1911,
-        parseInt(paymentDue.substring(3, 5), 10) - 1,
-        parseInt(paymentDue.substring(5, 7), 10)
-      );
+      let currentDate = new Date(parseInt(paymentDue.substring(0, 3)) + 1911, parseInt(paymentDue.substring(3, 5)) - 1, parseInt(paymentDue.substring(5, 7)));
 
       for (let i = 0; i < qrCount; i++) {
-        // 根據類型調整每個 QR Code 的條碼日期格式
         let formattedDate;
         if (barcodeType === "YYMM") {
-          if (i === 0) {
-            formattedDate = paymentDue;
-          } else {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
-          }
+          if (i > 0) currentDate.setMonth(currentDate.getMonth() + 1);
+          formattedDate = `${(currentDate.getFullYear() - 1911).toString().padStart(3, "0")}${(currentDate.getMonth() + 1).toString().padStart(2, "0")}01`;
         } else {
-          formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
+          formattedDate = `${(currentDate.getFullYear() - 1911).toString().padStart(3, "0")}${(currentDate.getMonth() + 1).toString().padStart(2, "0")}${currentDate.getDate().toString().padStart(2, "0")}`;
           currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // 將條碼英文字母轉換為數字
         const convertedFirst = convertLettersToNumbers(firstBarcode);
         const convertedSecond = convertLettersToNumbers(secondBarcode);
         const datePart = barcodeType === "YYMM" ? formattedDate.substring(1, 5) : formattedDate.substring(3);
         const paddedAmount = paymentAmount.padStart(9, "0");
 
-        // 計算奇偶檢查碼
         const oddSum = sumOdd(convertedFirst) + sumOdd(convertedSecond) + sumOdd(datePart + paddedAmount);
         const evenSum = sumEven(convertedFirst) + sumEven(convertedSecond) + sumEven(datePart + paddedAmount);
 
@@ -145,156 +155,56 @@
         const evenChecksum = evenSum % 11 === 0 ? "X" : evenSum % 11 === 10 ? "Y" : evenSum % 11;
 
         const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
-
-        // 準備 QR Code 內容
         const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
 
-        // 建立 QR Code 包裝區塊
-        const qrWrapper = document.createElement("div");
-        qrWrapper.style.display = "flex";
-        qrWrapper.style.flexDirection = "column";
-        qrWrapper.style.alignItems = "flex-start";
-        qrWrapper.style.margin = "10px";
-        qrWrapper.style.backgroundColor = "#ffffff";
-        qrWrapper.style.padding = "10px";
-        qrWrapper.className = "qr-wrapper";
+        const wrapper = document.createElement("div");
+        wrapper.className = "qr-wrapper";
 
-        // 建立標題容器，放置 ID 與下載按鍵
-        const headerDiv = document.createElement("div");
-        headerDiv.style.display = "flex";
-        headerDiv.style.width = "100%";
-        headerDiv.style.justifyContent = "space-between";
-        headerDiv.style.alignItems = "center";
-        headerDiv.style.marginBottom = "5px";
+        const header = document.createElement("div");
+        header.className = "qr-header";
 
-        // 條碼編號 ID
-        const qrId = document.createElement("div");
-        qrId.textContent = `ID_${i + 1}`;
-        qrId.style.fontSize = "14px";
-        qrId.style.fontWeight = "bold";
+        const idLabel = document.createElement("div");
+        idLabel.textContent = `ID_${i + 1}`;
 
-        // 圖檔下載按鍵
         const downloadBtn = document.createElement("div");
+        downloadBtn.className = "download-btn";
         downloadBtn.textContent = "圖檔下載";
-        downloadBtn.style.color = "red";
-        downloadBtn.style.fontSize = "14px";
-        downloadBtn.style.cursor = "pointer";
-        downloadBtn.style.fontWeight = "bold";
-
-        // 點擊下載圖檔，移除按鈕與條碼三段資訊再進行截圖
         downloadBtn.onclick = () => {
-          const cleanWrapper = qrWrapper.cloneNode(true);
+          const temp = wrapper.cloneNode(true);
+          temp.querySelector(".download-btn").remove();
+          temp.querySelector(".barcode-description").remove();
+          const hiddenContainer = document.createElement("div");
+          hiddenContainer.style.position = "fixed";
+          hiddenContainer.style.left = "-9999px";
+          hiddenContainer.appendChild(temp);
+          document.body.appendChild(hiddenContainer);
 
-          // 移除下載按鈕
-          const btn = cleanWrapper.querySelector("div:last-child"); // 選擇最後一個 div（下載按鈕）
-          if (btn && btn.textContent === "圖檔下載") {
-            btn.remove(); // 正確移除下載按鈕
-          }
-
-          // 移除條碼三段資訊（僅在下載圖檔時移除）
-          const barcodeDescription = cleanWrapper.querySelector(".barcode-description"); // 選擇條碼三段資訊的元素
-          if (barcodeDescription) {
-            barcodeDescription.remove(); // 移除條碼三段資訊
-          }
-
-          // 建立暫存容器
-          const tempContainer = document.createElement("div");
-          tempContainer.style.position = "fixed";
-          tempContainer.style.left = "-9999px";
-          tempContainer.appendChild(cleanWrapper);
-          document.body.appendChild(tempContainer);
-
-          // 使用 html2canvas 進行截圖
-          html2canvas(cleanWrapper, { backgroundColor: "#ffffff" }).then(canvas => {
+          html2canvas(temp, { backgroundColor: "#fff" }).then(canvas => {
             const link = document.createElement("a");
-            link.download = `${qrId.textContent}.png`;
+            link.download = `${idLabel.textContent}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
-
-            document.body.removeChild(tempContainer);
+            document.body.removeChild(hiddenContainer);
           });
         };
 
-        // 將 ID 與下載按鍵加入標題容器，再加入 qrWrapper
-        headerDiv.appendChild(qrId);
-        headerDiv.appendChild(downloadBtn);
-        qrWrapper.appendChild(headerDiv);
+        header.appendChild(idLabel);
+        header.appendChild(downloadBtn);
+        wrapper.appendChild(header);
 
-        // QR 圖像
         const qrDiv = document.createElement("div");
         new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
-        qrWrapper.appendChild(qrDiv);
+        wrapper.appendChild(qrDiv);
 
-        // 條碼三段資訊描述
-        const qrDescription = document.createElement("div");
-        qrDescription.className = "barcode-description";
-        qrDescription.innerHTML = `
-          <div>${firstBarcode}</div>
-          <div>${secondBarcode}</div>
-          <div>${thirdBarcode}</div>
-        `;
-        qrWrapper.appendChild(qrDescription);
+        const desc = document.createElement("div");
+        desc.className = "barcode-description";
+        desc.innerHTML = `<div>${firstBarcode}</div><div>${secondBarcode}</div><div>${thirdBarcode}</div>`;
+        wrapper.appendChild(desc);
 
-
-        qrcodeContainer.appendChild(qrWrapper);
+        container.appendChild(wrapper);
       }
-
-      // 顯示 QR Code 容器
-      qrcodeContainer.style.display = "flex";
-      qrcodeContainer.style.flexDirection = "column";
-    }
-
-    // 調整 QR Code 容器的佈局
-    function adjustQRCodeLayout() {
-      const qrcodeContainer = document.getElementById("qrcodeContainer");
-      const screenWidth = window.innerWidth;
-
-      if (screenWidth <= 768) {
-        // 手機模式
-        qrcodeContainer.style.flexDirection = "column";
-        qrcodeContainer.style.alignItems = "center";
-      } else if (screenWidth <= 1024) {
-        // 平板模式
-        qrcodeContainer.style.flexDirection = "row";
-        qrcodeContainer.style.flexWrap = "wrap";
-        qrcodeContainer.style.justifyContent = "center";
-      } else {
-        // 桌上型 PC 模式
-        qrcodeContainer.style.flexDirection = "row";
-        qrcodeContainer.style.flexWrap = "wrap";
-        qrcodeContainer.style.justifyContent = "flex-start";
-      }
-    }
-
-    // 當視窗大小改變時調整佈局
-    window.addEventListener("resize", adjustQRCodeLayout);
-
-    // 當頁面載入完成時調整佈局
-    window.addEventListener("load", () => {
-      adjustQRCodeLayout();
-      const qrcodeContainer = document.getElementById("qrcodeContainer");
-      qrcodeContainer.style.display = "flex"; // 確保容器顯示
-    });
-
-    // 將條碼中的字母轉換為對應數字（英文字母對應數字規則）
-    function convertLettersToNumbers(text) {
-      const map = {
-        A: '1', B: '2', C: '3', D: '4', E: '5', F: '6', G: '7', H: '8', I: '9', J: '1',
-        K: '2', L: '3', M: '4', N: '5', O: '6', P: '7', Q: '8', R: '9', S: '2', T: '3',
-        U: '4', V: '5', W: '6', X: '7', Y: '8', Z: '9'
-      };
-      return text.toUpperCase().replace(/[A-Z]/g, c => map[c] || c);
-    }
-
-    // 計算奇數位置數字總和
-    function sumOdd(str) {
-      return str.split('').reduce((sum, val, idx) => idx % 2 === 0 ? sum + parseInt(val, 10) : sum, 0);
-    }
-
-    // 計算偶數位置數字總和
-    function sumEven(str) {
-      return str.split('').reduce((sum, val, idx) => idx % 2 !== 0 ? sum + parseInt(val, 10) : sum, 0);
     }
   </script>
 </body>
 </html>
+
