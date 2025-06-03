@@ -131,23 +131,49 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    function convertLettersToNumbers(str) {
-      return str.toUpperCase().split('').map(char => {
+    // 輔助函式：將字母轉換為數字
+function convertLettersToNumbers(text) {
+    var result = "";
+    for (var i = 0; i < text.length; i++) {
+        var char = text.charAt(i);
         if (char >= 'A' && char <= 'Z') {
-          return (char.charCodeAt(0) - 55).toString(); // A=10
+            result += convertLetterToNumber(char);
         } else {
-          return char;
+            result += char;
         }
-      }).join('');
     }
+    return result;
+}
 
-    function sumOdd(str) {
-      return [...str].filter((_, i) => i % 2 === 0).reduce((sum, char) => sum + parseInt(char || 0), 0);
-    }
+// 輔助函式：單個字母轉換為數字
+function convertLetterToNumber(letter) {
+    var mapping = {
+        'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+        'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
+        'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
+        'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
+        'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
+    };
+    return mapping[letter];
+}
 
-    function sumEven(str) {
-      return [...str].filter((_, i) => i % 2 !== 0).reduce((sum, char) => sum + parseInt(char || 0), 0);
+// 輔助函式：計算奇數位置數字總和
+function calculateOddSum(barcode) {
+    var sum = 0;
+    for (var i = 0; i < barcode.length; i += 2) {
+        sum += parseInt(barcode.charAt(i));
     }
+    return sum;
+}
+
+// 輔助函式：計算偶數位置數字總和
+function calculateEvenSum(barcode) {
+    var sum = 0;
+    for (var i = 1; i < barcode.length; i += 2) {
+        sum += parseInt(barcode.charAt(i));
+    }
+    return sum;
+}
 
     function generateQRCode() {
       const firstBarcode = document.getElementById("firstBarcode").value.trim();
