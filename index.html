@@ -131,190 +131,179 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    // 輔助函式：將字母轉換為數字
-function convertLettersToNumbers(text) {
-    var result = "";
-    for (var i = 0; i < text.length; i++) {
-        var char = text.charAt(i);
-        if (char >= 'A' && char <= 'Z') {
-            result += convertLetterToNumber(char);
-        } else {
-            result += char;
+    // 修正函式：將字母轉換為數字
+    function convertLettersToNumbers(text) {
+        var result = "";
+        for (var i = 0; i < text.length; i++) {
+            var char = text.charAt(i);
+            if (char >= 'A' && char <= 'Z') {
+                result += convertLetterToNumber(char);
+            } else if (!isNaN(char)) {
+                result += char;
+            } else {
+                console.error(`無法解析字元: ${char}`);
+            }
         }
+        return result;
     }
-    return result;
-}
 
-// 輔助函式：單個字母轉換為數字
-function convertLetterToNumber(letter) {
-    var mapping = {
-        'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
-        'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
-        'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
-        'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
-        'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
-    };
-    return mapping[letter];
-}
-
-// 輔助函式：計算奇數位置數字總和
-function calculateOddSum(barcode) {
-    var sum = 0;
-    for (var i = 0; i < barcode.length; i += 2) {
-        sum += parseInt(barcode.charAt(i));
+    // 修正函式：單個字母轉換為數字
+    function convertLetterToNumber(letter) {
+        var mapping = {
+            'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+            'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
+            'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
+            'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
+            'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
+        };
+        return mapping[letter] || '0'; // 若字母不在範圍內，回傳 '0'
     }
-    return sum;
-}
 
-// 輔助函式：計算偶數位置數字總和
-function calculateEvenSum(barcode) {
-    var sum = 0;
-    for (var i = 1; i < barcode.length; i += 2) {
-        sum += parseInt(barcode.charAt(i));
+    // 修正函式：計算奇數位置數字總和
+    function calculateOddSum(barcode) {
+        var sum = 0;
+        for (var i = 0; i < barcode.length; i += 2) {
+            var char = barcode.charAt(i);
+            if (!isNaN(char)) {
+                sum += parseInt(char, 10);
+            } else {
+                console.error(`奇數位置包含非數字字元: ${char}`);
+            }
+        }
+        return sum;
     }
-    return sum;
-}
 
+    // 修正函式：計算偶數位置數字總和
+    function calculateEvenSum(barcode) {
+        var sum = 0;
+        for (var i = 1; i < barcode.length; i += 2) {
+            var char = barcode.charAt(i);
+            if (!isNaN(char)) {
+                sum += parseInt(char, 10);
+            } else {
+                console.error(`偶數位置包含非數字字元: ${char}`);
+            }
+        }
+        return sum;
+    }
+
+    // 修正條碼生成邏輯
     function generateQRCode() {
-      const firstBarcode = document.getElementById("firstBarcode").value.trim();
-      const secondBarcode = document.getElementById("secondBarcode").value.trim();
-      const paymentDue = document.getElementById("paymentDue").value.trim();
-      const paymentAmount = document.getElementById("paymentAmount").value.trim();
-      const barcodeType = document.getElementById("barcodeType").value;
-      const qrCount = parseInt(document.getElementById("qrCount").value);
+        const firstBarcode = document.getElementById("firstBarcode").value.trim();
+        const secondBarcode = document.getElementById("secondBarcode").value.trim();
+        const paymentDue = document.getElementById("paymentDue").value.trim();
+        const paymentAmount = document.getElementById("paymentAmount").value.trim();
+        const barcodeType = document.getElementById("barcodeType").value;
+        const qrCount = parseInt(document.getElementById("qrCount").value);
 
-      if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
-        alert("請填寫所有欄位！");
-        return;
-      }
-
-      const container = document.getElementById("qrcodeContainer");
-      container.innerHTML = "";
-      container.style.display = "flex";
-
-      let currentDate = new Date(
-        parseInt(paymentDue.substring(0, 3), 10) + 1911,
-        parseInt(paymentDue.substring(3, 5), 10) - 1,
-        parseInt(paymentDue.substring(5, 7), 10)
-      );
-
-      for (let i = 0; i < qrCount; i++) {
-        let formattedDate;
-        if (barcodeType === "YYMM") {
-          if (i > 0) currentDate.setMonth(currentDate.getMonth() + 1);
-          formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
-        } else {
-          formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
-          currentDate.setDate(currentDate.getDate() + 1);
+        if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
+            alert("請填寫所有欄位！");
+            return;
         }
 
-        const convertedFirst = convertLettersToNumbers(firstBarcode);
-        const convertedSecond = convertLettersToNumbers(secondBarcode);
-        const datePart = barcodeType === "YYMM" ? formattedDate.substring(1, 5) : formattedDate.substring(3);
-        const paddedAmount = paymentAmount.padStart(9, "0");
+        const container = document.getElementById("qrcodeContainer");
+        container.innerHTML = "";
+        container.style.display = "flex";
 
-        const oddSum = sumOdd(convertedFirst) + sumOdd(convertedSecond) + sumOdd(datePart + paddedAmount);
-        const evenSum = sumEven(convertedFirst) + sumEven(convertedSecond) + sumEven(datePart + paddedAmount);
+        let currentDate = new Date(
+            parseInt(paymentDue.substring(0, 3), 10) + 1911,
+            parseInt(paymentDue.substring(3, 5), 10) - 1,
+            parseInt(paymentDue.substring(5, 7), 10)
+        );
 
-        const oddChecksum = oddSum % 11 === 0 ? "A" : oddSum % 11 === 10 ? "B" : oddSum % 11;
-        const evenChecksum = evenSum % 11 === 0 ? "X" : evenSum % 11 === 10 ? "Y" : evenSum % 11;
+        for (let i = 0; i < qrCount; i++) {
+            let formattedDate;
+            if (barcodeType === "YYMM") {
+                if (i > 0) currentDate.setMonth(currentDate.getMonth() + 1);
+                formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
+            } else {
+                formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
 
-        const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
-        const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
+            const convertedFirst = convertLettersToNumbers(firstBarcode);
+            const convertedSecond = convertLettersToNumbers(secondBarcode);
+            const datePart = barcodeType === "YYMM" ? formattedDate.substring(1, 5) : formattedDate.substring(3);
+            const paddedAmount = paymentAmount.padStart(9, "0");
 
-        const qrWrapper = document.createElement("div");
-        qrWrapper.className = "qr-wrapper";
+            const oddSum = calculateOddSum(convertedFirst) + calculateOddSum(convertedSecond) + calculateOddSum(datePart + paddedAmount);
+            const evenSum = calculateEvenSum(convertedFirst) + calculateEvenSum(convertedSecond) + calculateEvenSum(datePart + paddedAmount);
 
-        const header = document.createElement("div");
-        header.style.display = "flex";
-        header.style.justifyContent = "space-between";
-        header.style.width = "100%";
+            const oddChecksum = oddSum % 11 === 0 ? "A" : oddSum % 11 === 10 ? "B" : oddSum % 11;
+            const evenChecksum = evenSum % 11 === 0 ? "X" : evenSum % 11 === 10 ? "Y" : evenSum % 11;
 
-        const idLabel = document.createElement("div");
-        idLabel.textContent = `ID_${i + 1}`;
-        idLabel.style.fontWeight = "bold";
+            const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
+            const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
 
-        const downloadBtn = document.createElement("div");
-        downloadBtn.textContent = "圖檔下載";
-        downloadBtn.style.color = "red";
-        downloadBtn.style.cursor = "pointer";
-        downloadBtn.style.fontWeight = "bold";
+            const qrWrapper = document.createElement("div");
+            qrWrapper.className = "qr-wrapper";
 
-     
+            const header = document.createElement("div");
+            header.style.display = "flex";
+            header.style.justifyContent = "space-between";
+            header.style.width = "100%";
 
-         
- downloadBtn.onclick = () => {
-  // 建立一個新的乾淨容器，只包含 ID + QR Code
-  const cleanWrapper = document.createElement("div");
-  cleanWrapper.style.display = "flex";
-  cleanWrapper.style.flexDirection = "column";
-  cleanWrapper.style.alignItems = "center";
-  cleanWrapper.style.padding = "10px";
-  cleanWrapper.style.border = "1px solid #ccc";
-  cleanWrapper.style.borderRadius = "8px";
-  cleanWrapper.style.backgroundColor = "#fff";
+            const idLabel = document.createElement("div");
+            idLabel.textContent = `ID_${i + 1}`;
+            idLabel.style.fontWeight = "bold";
 
-  // 加入 ID 編號
-  const idText = document.createElement("div");
-  idText.textContent = idLabel.textContent;
-  idText.style.fontWeight = "bold";
-  cleanWrapper.appendChild(idText);
+            const downloadBtn = document.createElement("div");
+            downloadBtn.textContent = "圖檔下載";
+            downloadBtn.style.color = "red";
+            downloadBtn.style.cursor = "pointer";
+            downloadBtn.style.fontWeight = "bold";
 
-  // 取出 QRCode 的 canvas
-  const qrCanvas = qrWrapper.querySelector("canvas");
-  if (qrCanvas) {
-    const qrClone = qrCanvas.cloneNode(true);
-    cleanWrapper.appendChild(qrClone);
-  }
+            downloadBtn.onclick = () => {
+                const cleanWrapper = document.createElement("div");
+                cleanWrapper.style.display = "flex";
+                cleanWrapper.style.flexDirection = "column";
+                cleanWrapper.style.alignItems = "center";
+                cleanWrapper.style.padding = "10px";
+                cleanWrapper.style.border = "1px solid #ccc";
+                cleanWrapper.style.borderRadius = "8px";
+                cleanWrapper.style.backgroundColor = "#fff";
 
-  const tempContainer = document.createElement("div");
-  tempContainer.style.position = "fixed";
-  tempContainer.style.left = "-9999px";
-  document.body.appendChild(tempContainer);
-  tempContainer.appendChild(cleanWrapper);
+                const idText = document.createElement("div");
+                idText.textContent = idLabel.textContent;
+                idText.style.fontWeight = "bold";
+                cleanWrapper.appendChild(idText);
 
-  html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = `${idLabel.textContent}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    document.body.removeChild(tempContainer);
-  });
-};
+                const qrCanvas = qrWrapper.querySelector("canvas");
+                if (qrCanvas) {
+                    const qrClone = qrCanvas.cloneNode(true);
+                    cleanWrapper.appendChild(qrClone);
+                }
 
-          //   const cleanWrapper = qrWrapper.cloneNode(true);
-       //   cleanWrapper.querySelector("div:last-child").remove(); // 移除說明
-       //   cleanWrapper.querySelector("div div:last-child")?.remove(); // 移除下載按鈕
-   //       const tempContainer = document.createElement("div");
-   //         tempContainer.style.position = "fixed";
-  //          tempContainer.style.left = "-9999px";
-    //       document.body.appendChild(tempContainer);
-     //      tempContainer.appendChild(cleanWrapper);
+                const tempContainer = document.createElement("div");
+                tempContainer.style.position = "fixed";
+                tempContainer.style.left = "-9999px";
+                document.body.appendChild(tempContainer);
+                tempContainer.appendChild(cleanWrapper);
 
-       //    html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
-       //     const link = document.createElement("a");
-       //       link.download = `${idLabel.textContent}.png`;
-       //       link.href = canvas.toDataURL("image/png");
-       //         link.click();
-        //     document.body.removeChild(tempContainer);
-         //  });
-       //  };
+                html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
+                    const link = document.createElement("a");
+                    link.download = `${idLabel.textContent}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                    document.body.removeChild(tempContainer);
+                });
+            };
 
-        header.appendChild(idLabel);
-        header.appendChild(downloadBtn);
-        qrWrapper.appendChild(header);
+            header.appendChild(idLabel);
+            header.appendChild(downloadBtn);
+            qrWrapper.appendChild(header);
 
-        const qrDiv = document.createElement("div");
-        new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
-        qrWrapper.appendChild(qrDiv);
+            const qrDiv = document.createElement("div");
+            new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
+            qrWrapper.appendChild(qrDiv);
 
-        const desc = document.createElement("div");
-        desc.className = "barcode-description";
-        desc.innerHTML = `<div>${firstBarcode}</div><div>${secondBarcode}</div><div>${thirdBarcode}</div>`;
-        qrWrapper.appendChild(desc);
+            const desc = document.createElement("div");
+            desc.className = "barcode-description";
+            desc.innerHTML = `<div>${firstBarcode}</div><div>${secondBarcode}</div><div>${thirdBarcode}</div>`;
+            qrWrapper.appendChild(desc);
 
-        container.appendChild(qrWrapper);
-      }
+            container.appendChild(qrWrapper);
+        }
     }
   </script>
 </body>
