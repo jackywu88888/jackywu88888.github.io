@@ -212,14 +212,23 @@
             parseInt(paymentDue.substring(5, 7), 10)
         );
 
-        for (let i = 0; i < qrCount; i++) {
+          for (let i = 0; i < qrCount; i++) {
             let formattedDate;
+        
             if (barcodeType === "YYMM") {
-                if (i > 0) currentDate.setMonth(currentDate.getMonth() + 1);
-                formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
+              if (i === 0) {
+                // 首筆使用輸入的繳費期限
+                formattedDate = paymentDue;
+              } else {
+                // 其他筆為每月第一天
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                formattedDate =
+                  `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
+              }
             } else {
-                formattedDate = `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
-                currentDate.setDate(currentDate.getDate() + 1);
+              formattedDate =
+                `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
+              currentDate.setDate(currentDate.getDate() + 1);
             }
 
             const convertedFirst = convertLettersToNumbers(firstBarcode);
