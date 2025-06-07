@@ -53,11 +53,44 @@
       border: none;
       cursor: pointer;
     }
+/* === 生成 QR Code 按鈕樣式（如需微調請修改此區塊） === */
+    #barcodeForm button[type="button"] {
+      width: auto;
+      min-width: 200px;
+      max-width: px;
+      margin: 12px auto 0 auto;
+      display: block;
+      padding: 10px 0;
+      font-size: 1rem;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    /* === 全部下載按鈕樣式（如需微調請修改此區塊） === */
+    #downloadAllBtn {
+      width: auto;
+      min-width: 200px;
+      max-width: 200px;
+      margin: 12px auto 0 auto;
+      display: block;
+      padding: 10px 0;
+      font-size: 1rem;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
 
     .qrcode-container {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      flex-direction: column;   /* 垂直排列 */
+      align-items: center;      /* 置中每一張 */
       gap: 1rem;
       width: 100%;
       max-width: 1000px;
@@ -87,241 +120,473 @@
         align-items: center;
       }
     }
+      
+    #downloadAllBtn {  
+      width: auto;
+      min-width: 100px;
+      max-width: 200px;
+      margin: 12px auto 0 auto;
+      display: block;
+      padding: 10px 0;
+      font-size: 1rem;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    #mainContent {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
   </style>
 </head>
 <body>
- <div style="text-align: center; line-height: 1.8;">
-  <p style="margin-bottom: 0.0em;">🚀 <strong>使用風險提醒</strong></p>
-  <p style="margin: 0;">QR條碼只能在全家限定使用</p>
-  <p style="margin: 0;">QR信用卡條碼產生器有可能會發生</p>
-  <p style="margin: 0;">條碼掃得過但實際沒入帳</p>
-  <p style="margin: 0;">付款紀錄「飛到外太空」不見了的情況</p>
-  <p style="margin: 0;">請務必確認條碼內容正確無誤</p>
-  <p style="margin-top: 0.0em;">⚠️ 這些風險需由您自行承擔，請小心使用</p>
-</div>
+    <div id="loginBox">
+      <h3>請先登入</h3>
+      <input id="loginAccount" type="text" placeholder="帳號" />
+      <input id="loginPassword" type="password" placeholder="密碼" />
+      <button onclick="login()">登入</button>
+      <div id="loginMsg"></div>
+    </div>
 
-  <h2>QR Code 產生器</h2>
-
-  <form id="barcodeForm">
-    <label>第三段條碼前4碼</label>
-    <select id="barcodeType">
-      <option value="YYMM">年+月</option>
-      <option value="MMDD">月+日</option>
-    </select>
-
-    <label>第一段條碼 (9碼)</label>
-    <input type="text" id="firstBarcode" required />
-
-    <label>第二段條碼 (16碼)</label>
-    <input type="text" id="secondBarcode" required />
-
-    <label>繳費期限 (YYYMMDD)</label>
-    <input type="text" id="paymentDue" required />
-
-    <label>繳費金額</label>
-    <input type="text" id="paymentAmount" required />
-
-    <label>生成 QR Code 數量:</label>
-    <select id="qrCount">
-      <option value="1">1</option>
-      <option value="10">10</option>
-      <option value="20">20</option>
-      <option value="30">30</option>
-      <option value="40">40</option>
-      <option value="50">50</option>
-      <option value="60">60</option>
-    </select>
-
-    <button type="button" onclick="generateQRCode()">生成 QR Code</button>
-  </form>
-
+      <div id="mainApp" style="display: none;">
+        <div id="mainContent" style="width:100%;max-width:500px;margin:0 auto;">
+          <div style="text-align: center; line-height: 1.8;">
+      <p style="margin-bottom: 0.0em;">🚀 <strong>使用風險提醒</strong></p>
+      <p style="margin: 0;">信用卡條碼產生器有可能會發生</p>
+      <p style="margin: 0;">條碼掃得過但實際沒入帳</p>
+      <p style="margin: 0;">付款紀錄「飛到外太空」不見了的情況</p>
+      <p style="margin: 0;">請務必確認條碼內容正確無誤</p>
+      <p style="margin-top: 0.0em;">⚠️ 這些風險需由您自行承擔，請小心使用</p>
+    </div>
+    <h2>QR Code 產生器</h2>
+    <form id="barcodeForm">
+      <!-- ...原本表單內容... -->
+      <label>選擇條碼類型:</label>
+      <select id="barcodeType">
+        <option value="YYMM">年+月</option>
+        <option value="MMDD">月+日</option>
+      </select>
+      <label>第一段條碼 (9碼)</label>
+      <input type="text" id="firstBarcode" maxlength="9" pattern="[A-Za-z0-9]{9}" title="請輸入 9 位英文或數字" required />
+      <label>第二段條碼 (16碼)</label>
+      <input type="text" id="secondBarcode" maxlength="16" pattern="[A-Za-z0-9]{16}" title="請輸入 16 位英文或數字" required />
+      <label>繳費期限 (YYYMMDD)</label>
+      <input type="text" id="paymentDue" maxlength="7" pattern="^[0-9]{7}$" title="請輸入正確格式（YYYMMDD）" required />
+      <label>繳費金額</label>
+      <input type="text" id="paymentAmount" pattern="^[0-9]+$" title="請輸入數字金額" required />
+      <label>生成 QR Code 數量:</label>
+      <select id="qrCount">
+        <option value="1">1</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+      </select>
+      <button type="button" onclick="generateQRCode()">生成 QR Code</button>
+    </form>
+    <button type="button" id="downloadAllBtn" style="display:none;">全部下載</button>
+  </div>
   <div class="qrcode-container" id="qrcodeContainer" style="display: none;"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script>
-    // 修正函式：將字母轉換為數字
-    function convertLettersToNumbers(text) {
-        var result = "";
-        for (var i = 0; i < text.length; i++) {
-            var char = text.charAt(i);
-            if (char >= 'A' && char <= 'Z') {
-                result += convertLetterToNumber(char);
-            } else if (!isNaN(char)) {
-                result += char;
-            } else {
-                console.error(`無法解析字元: ${char}`);
-            }
-        }
-        return result;
+  // 字母轉數字
+  function convertLettersToNumbers(text) {
+    var result = "";
+    for (var i = 0; i < text.length; i++) {
+      var char = text.charAt(i);
+      if (char >= 'A' && char <= 'Z') {
+        result += convertLetterToNumber(char);
+      } else if (!isNaN(char)) {
+        result += char;
+      }
+    }
+    return result;
+  }
+  function convertLetterToNumber(letter) {
+    var mapping = {
+      'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+      'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
+      'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
+      'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
+      'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
+    };
+    return mapping[letter] || '0';
+  }
+  function calculateOddSum(barcode) {
+    var sum = 0;
+    for (var i = 0; i < barcode.length; i += 2) {
+      var char = barcode.charAt(i);
+      if (!isNaN(char)) {
+        sum += parseInt(char, 10);
+      }
+    }
+    return sum;
+  }
+  function calculateEvenSum(barcode) {
+    var sum = 0;
+    for (var i = 1; i < barcode.length; i += 2) {
+      var char = barcode.charAt(i);
+      if (!isNaN(char)) {
+        sum += parseInt(char, 10);
+      }
+    }
+    return sum;
+  }
+  function isValidMinguoDate(date) {
+    if (!/^[0-9]{7}$/.test(date)) return false;
+    const year = parseInt(date.substring(0, 3), 10) + 1911;
+    const month = parseInt(date.substring(3, 5), 10);
+    const day = parseInt(date.substring(5, 7), 10);
+    if (month < 1 || month > 12) return false;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return day >= 1 && day <= daysInMonth;
+  }
+
+  function generateQRCode() {
+    const firstBarcode = document.getElementById("firstBarcode").value.trim();
+    const secondBarcode = document.getElementById("secondBarcode").value.trim();
+    const paymentDue = document.getElementById("paymentDue").value.trim();
+    const paymentAmount = document.getElementById("paymentAmount").value.trim();
+    const barcodeType = document.getElementById("barcodeType").value;
+    const qrCount = parseInt(document.getElementById("qrCount").value);
+
+    if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
+      alert("請填寫所有欄位！");
+      return;
+    }
+    if (!isValidMinguoDate(paymentDue)) {
+      alert("繳費期限格式錯誤，請輸入正確的民國日期\n(YYYMMDD)");
+      return;
     }
 
-    // 修正函式：單個字母轉換為數字
-    function convertLetterToNumber(letter) {
-        var mapping = {
-            'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
-            'F': '6', 'G': '7', 'H': '8', 'I': '9', 'J': '1',
-            'K': '2', 'L': '3', 'M': '4', 'N': '5', 'O': '6',
-            'P': '7', 'Q': '8', 'R': '9', 'S': '2', 'T': '3',
-            'U': '4', 'V': '5', 'W': '6', 'X': '7', 'Y': '8', 'Z': '9'
-        };
-        return mapping[letter] || '0'; // 若字母不在範圍內，回傳 '0'
+    const container = document.getElementById("qrcodeContainer");
+    container.innerHTML = "";
+    container.style.display = "flex";
+    container.style.flexWrap = "wrap";
+    container.style.justifyContent = "center";
+
+    let currentDate = new Date(
+      parseInt(paymentDue.substring(0, 3), 10) + 1911,
+      parseInt(paymentDue.substring(3, 5), 10) - 1,
+      parseInt(paymentDue.substring(5, 7), 10)
+    );
+
+    for (let i = 0; i < qrCount; i++) {
+      let formattedDate;
+      if (barcodeType === "YYMM") {
+        if (i === 0) {
+          formattedDate = paymentDue;
+        } else {
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          formattedDate =
+            `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
+        }
+      } else {
+        formattedDate =
+          `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      const convertedFirst = convertLettersToNumbers(firstBarcode);
+      const convertedSecond = convertLettersToNumbers(secondBarcode);
+      const datePart = barcodeType === "YYMM" ? formattedDate.substring(1, 5) : formattedDate.substring(3);
+      const paddedAmount = paymentAmount.padStart(9, "0");
+
+      const oddSum = calculateOddSum(convertedFirst) + calculateOddSum(convertedSecond) + calculateOddSum(datePart + paddedAmount);
+      const evenSum = calculateEvenSum(convertedFirst) + calculateEvenSum(convertedSecond) + calculateEvenSum(datePart + paddedAmount);
+
+      const oddChecksum = oddSum % 11 === 0 ? "A" : oddSum % 11 === 10 ? "B" : oddSum % 11;
+      const evenChecksum = evenSum % 11 === 0 ? "X" : evenSum % 11 === 10 ? "Y" : evenSum % 11;
+
+      const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
+      const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
+
+       // --- 條碼區塊 ---
+     const wrapper = document.createElement("div");
+     wrapper.className = "qr-wrapper";
+     wrapper.style.border = "1px solid #ccc";
+     wrapper.style.borderRadius = "12px";
+     wrapper.style.padding = "16px 12px 12px 12px"; // 上方空白縮短
+     wrapper.style.margin = "12px";
+     wrapper.style.backgroundColor = "#fff";
+     wrapper.style.maxWidth = "320px";
+     wrapper.style.width = "100%";
+     wrapper.style.position = "relative";
+     wrapper.style.boxSizing = "border-box";
+
+            // 標題與流水號同一行
+            const titleRow = document.createElement("div");
+            titleRow.style.display = "flex";
+            titleRow.style.justifyContent = "center";
+            titleRow.style.alignItems = "center";
+            titleRow.style.width = "100%";
+            titleRow.style.marginBottom = "10px";
+            titleRow.style.position = "relative";
+
+            const title = document.createElement("div");
+            title.textContent = "繳款條碼";
+            title.style.fontWeight = "bold";
+            title.style.fontSize = "20px";
+            title.style.letterSpacing = "2px";
+            title.style.textAlign = "center";
+            title.style.flex = "1";
+
+            const serialNumber = document.createElement("div");
+            serialNumber.textContent = (i + 1);
+            serialNumber.style.position = "absolute";
+            serialNumber.style.right = "0";
+            serialNumber.style.top = "0";
+            serialNumber.style.fontWeight = "bold";
+            serialNumber.style.fontSize = "16px";
+            serialNumber.style.color = "#888";
+
+            titleRow.appendChild(title);
+            titleRow.appendChild(serialNumber);
+            wrapper.appendChild(titleRow);
+
+      // QR Code
+      const qrDiv = document.createElement("div");
+      qrDiv.style.margin = "0 auto";
+      qrDiv.style.alignSelf = "center";
+      qrDiv.style.width = "150px"; // 固定寬度，方便對齊
+      qrDiv.style.position = "relative";
+      new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
+      wrapper.appendChild(qrDiv);
+
+      // 三段條碼純文字顯示（僅畫面用，下載時不要加）
+      const barcodeTextDiv = document.createElement("div");
+      barcodeTextDiv.style.display = "block";
+      barcodeTextDiv.style.margin = "8px 0 0 0"; // 緊貼QR下方
+      barcodeTextDiv.style.fontSize = "16px";
+      barcodeTextDiv.style.letterSpacing = "2px";
+      barcodeTextDiv.style.textAlign = "left";
+      barcodeTextDiv.style.lineHeight = "1.6";
+      barcodeTextDiv.style.width = "150px"; // 與 QR Code 寬度一致
+      barcodeTextDiv.style.position = "relative";
+      barcodeTextDiv.style.left = "50%";
+      barcodeTextDiv.style.transform = "translateX(-50%)"; // 讓條碼區塊與 QR Code 左側齊
+      barcodeTextDiv.innerHTML = `
+        <div>${firstBarcode}</div>
+        <div>${secondBarcode}</div>
+        <div>${thirdBarcode}</div>
+      `;
+      wrapper.appendChild(barcodeTextDiv);
+
+      // 下載按鈕
+      const downloadRow = document.createElement("div");
+      downloadRow.className = "download-row";
+      downloadRow.style.width = "100%";
+      downloadRow.style.display = "flex";
+      downloadRow.style.justifyContent = "flex-end";
+      const downloadBtn = document.createElement("button");
+      downloadBtn.textContent = "下載";
+      downloadBtn.className = "download-btn";
+      downloadBtn.style.marginTop = "8px";
+      downloadBtn.style.padding = "6px 18px";
+      downloadBtn.style.fontSize = "15px";
+      downloadBtn.style.borderRadius = "5px";
+      downloadBtn.style.backgroundColor = "#4CAF50";
+      downloadBtn.style.color = "white";
+      downloadBtn.style.border = "none";
+      downloadBtn.style.cursor = "pointer";
+      downloadBtn.style.width = "80px"; // 按鈕寬度縮短
+      downloadBtn.onclick = () => {
+        const cleanWrapper = document.createElement("div");
+        cleanWrapper.style.display = "flex";
+        cleanWrapper.style.flexDirection = "column";
+        cleanWrapper.style.alignItems = "center";
+        cleanWrapper.style.padding = "16px 12px 12px 12px";
+        cleanWrapper.style.border = "1px solid #ccc";
+        cleanWrapper.style.borderRadius = "12px";
+        cleanWrapper.style.backgroundColor = "#fff";
+        cleanWrapper.style.maxWidth = "320px";
+        cleanWrapper.style.width = "100%";
+        cleanWrapper.style.position = "relative";
+        cleanWrapper.style.boxSizing = "border-box";
+
+        // 標題與流水號同一行（置中）
+        const titleRow = document.createElement("div");
+        titleRow.style.display = "flex";
+        titleRow.style.justifyContent = "center";
+        titleRow.style.alignItems = "center";
+        titleRow.style.width = "100%";
+        titleRow.style.marginBottom = "10px";
+        titleRow.style.position = "relative";
+
+        const titleClone = document.createElement("div");
+        titleClone.textContent = "繳款條碼";
+        titleClone.style.fontWeight = "bold";
+        titleClone.style.fontSize = "20px";
+        titleClone.style.letterSpacing = "2px";
+        titleClone.style.textAlign = "center";
+        titleClone.style.flex = "1";
+
+        const serialNumberClone = document.createElement("div");
+        serialNumberClone.textContent = serialNumber.textContent;
+        serialNumberClone.style.position = "absolute";
+        serialNumberClone.style.right = "0";
+        serialNumberClone.style.top = "0";
+        serialNumberClone.style.fontWeight = "bold";
+        serialNumberClone.style.fontSize = "16px";
+        serialNumberClone.style.color = "#888";
+
+        titleRow.appendChild(titleClone);
+        titleRow.appendChild(serialNumberClone);
+        cleanWrapper.appendChild(titleRow);
+
+        // QR Code
+        const qrDivClone = document.createElement("div");
+        qrDivClone.style.margin = "0 auto";
+        qrDivClone.style.alignSelf = "center";
+        new QRCode(qrDivClone, { text: qrData, width: 150, height: 150 });
+        cleanWrapper.appendChild(qrDivClone);
+
+        const tempContainer = document.createElement("div");
+        tempContainer.style.position = "fixed";
+        tempContainer.style.left = "-9999px";
+        document.body.appendChild(tempContainer);
+        tempContainer.appendChild(cleanWrapper);
+
+        html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
+          const link = document.createElement("a");
+          link.download = `繳款帳單_${serialNumber.textContent}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+          document.body.removeChild(tempContainer);
+        });
+      };
+      downloadRow.appendChild(downloadBtn);
+      wrapper.appendChild(downloadRow);
+
+      container.appendChild(wrapper);
     }
 
-    // 修正函式：計算奇數位置數字總和
-    function calculateOddSum(barcode) {
-        var sum = 0;
-        for (var i = 0; i < barcode.length; i += 2) {
-            var char = barcode.charAt(i);
-            if (!isNaN(char)) {
-                sum += parseInt(char, 10);
-            } else {
-                console.error(`奇數位置包含非數字字元: ${char}`);
-            }
+    // 顯示全部下載按鈕（多張才顯示）
+    document.getElementById("downloadAllBtn").style.display = qrCount > 1 ? "inline-block" : "none";
+    document.getElementById("downloadAllBtn").onclick = async function() {
+      const zip = new JSZip();
+      const wrappers = document.querySelectorAll(".qr-wrapper");
+      let hasData = false;
+
+      for (let idx = 0; idx < wrappers.length; idx++) {
+        // 取得每張的 QR 資料
+        const qrData = wrappers[idx].querySelector("canvas") ? wrappers[idx].querySelector("canvas").getAttribute("data-qrcode") : null;
+        // 取得流水號
+        const serialNumber = wrappers[idx].querySelector("div[style*='position: absolute']")?.textContent || (idx + 1);
+
+        // 組裝乾淨區塊（與單張下載一致）
+        const cleanWrapper = document.createElement("div");
+        cleanWrapper.style.display = "flex";
+        cleanWrapper.style.flexDirection = "column";
+        cleanWrapper.style.alignItems = "center";
+        cleanWrapper.style.padding = "16px 12px 12px 12px";
+        cleanWrapper.style.border = "1px solid #ccc";
+        cleanWrapper.style.borderRadius = "12px";
+        cleanWrapper.style.backgroundColor = "#fff";
+        cleanWrapper.style.maxWidth = "320px";
+        cleanWrapper.style.width = "100%";
+        cleanWrapper.style.position = "relative";
+        cleanWrapper.style.boxSizing = "border-box";
+
+        // 標題與流水號同一行（置中）
+        const titleRow = document.createElement("div");
+        titleRow.style.display = "flex";
+        titleRow.style.justifyContent = "center";
+        titleRow.style.alignItems = "center";
+        titleRow.style.width = "100%";
+        titleRow.style.marginBottom = "10px";
+        titleRow.style.position = "relative";
+
+        const titleClone = document.createElement("div");
+        titleClone.textContent = "繳款條碼";
+        titleClone.style.fontWeight = "bold";
+        titleClone.style.fontSize = "20px";
+        titleClone.style.letterSpacing = "2px";
+        titleClone.style.textAlign = "center";
+        titleClone.style.flex = "1";
+
+        const serialNumberClone = document.createElement("div");
+        serialNumberClone.textContent = serialNumber;
+        serialNumberClone.style.position = "absolute";
+        serialNumberClone.style.right = "0";
+        serialNumberClone.style.top = "0";
+        serialNumberClone.style.fontWeight = "bold";
+        serialNumberClone.style.fontSize = "16px";
+        serialNumberClone.style.color = "#888";
+
+        titleRow.appendChild(titleClone);
+        titleRow.appendChild(serialNumberClone);
+        cleanWrapper.appendChild(titleRow);
+
+        // QR Code
+        const qrDivClone = document.createElement("div");
+        qrDivClone.style.margin = "0 auto";
+        qrDivClone.style.alignSelf = "center";
+        // 重新產生 QR Code（請根據你的資料來源填入 qrData）
+        // 若 qrData 取不到，請用你原本產生 QR Code 的資料組裝方式
+        new QRCode(qrDivClone, { text: wrappers[idx].getAttribute("data-qrcode") || qrData || "QR資料", width: 150, height: 150 });
+        cleanWrapper.appendChild(qrDivClone);
+
+        const tempContainer = document.createElement("div");
+        tempContainer.style.position = "fixed";
+        tempContainer.style.left = "-9999px";
+        document.body.appendChild(tempContainer);
+        tempContainer.appendChild(cleanWrapper);
+
+        const canvas = await html2canvas(cleanWrapper, { scale: 2 });
+        const dataUrl = canvas.toDataURL("image/png");
+        const base64 = dataUrl.split(',')[1];
+        if (base64.length > 100) {
+          zip.file(`繳款帳單_${serialNumber}.png`, base64, {base64: true});
+          hasData = true;
         }
-        return sum;
+        document.body.removeChild(tempContainer);
+      }
+
+      if (!hasData) {
+        alert("沒有可下載的條碼圖片！");
+        return;
+      }
+
+      zip.generateAsync({type:"blob"}).then(function(content) {
+        saveAs(content, "信用卡帳單.zip");
+      });
+    };
+  }
+
+    // 請在 <script> 裡加上這段
+    function showCustomAlert(msg) {
+        document.getElementById('customAlertMsg').innerText = msg;
+        document.getElementById('customAlert').style.display = 'flex';
     }
 
-    // 修正函式：計算偶數位置數字總和
-    function calculateEvenSum(barcode) {
-        var sum = 0;
-        for (var i = 1; i < barcode.length; i += 2) {
-            var char = barcode.charAt(i);
-            if (!isNaN(char)) {
-                sum += parseInt(char, 10);
-            } else {
-                console.error(`偶數位置包含非數字字元: ${char}`);
-            }
-        }
-        return sum;
-    }
+    function login() {
+      const account = document.getElementById('loginAccount').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
 
-    // 修正條碼生成邏輯
-    function generateQRCode() {
-        const firstBarcode = document.getElementById("firstBarcode").value.trim();
-        const secondBarcode = document.getElementById("secondBarcode").value.trim();
-        const paymentDue = document.getElementById("paymentDue").value.trim();
-        const paymentAmount = document.getElementById("paymentAmount").value.trim();
-        const barcodeType = document.getElementById("barcodeType").value;
-        const qrCount = parseInt(document.getElementById("qrCount").value);
-
-        if (!firstBarcode || !secondBarcode || !paymentDue || !paymentAmount || isNaN(qrCount)) {
-            alert("請填寫所有欄位！");
-            return;
-        }
-
-        const container = document.getElementById("qrcodeContainer");
-        container.innerHTML = "";
-        container.style.display = "flex";
-
-        let currentDate = new Date(
-            parseInt(paymentDue.substring(0, 3), 10) + 1911,
-            parseInt(paymentDue.substring(3, 5), 10) - 1,
-            parseInt(paymentDue.substring(5, 7), 10)
-        );
-
-          for (let i = 0; i < qrCount; i++) {
-            let formattedDate;
-        
-            if (barcodeType === "YYMM") {
-              if (i === 0) {
-                // 首筆使用輸入的繳費期限
-                formattedDate = paymentDue;
-              } else {
-                // 其他筆為每月第一天
-                currentDate.setMonth(currentDate.getMonth() + 1);
-                formattedDate =
-                  `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}01`;
-              }
-            } else {
-              formattedDate =
-                `${String(currentDate.getFullYear() - 1911).padStart(3, "0")}${String(currentDate.getMonth() + 1).padStart(2, "0")}${String(currentDate.getDate()).padStart(2, "0")}`;
-              currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            const convertedFirst = convertLettersToNumbers(firstBarcode);
-            const convertedSecond = convertLettersToNumbers(secondBarcode);
-            const datePart = barcodeType === "YYMM" ? formattedDate.substring(1, 5) : formattedDate.substring(3);
-            const paddedAmount = paymentAmount.padStart(9, "0");
-
-            const oddSum = calculateOddSum(convertedFirst) + calculateOddSum(convertedSecond) + calculateOddSum(datePart + paddedAmount);
-            const evenSum = calculateEvenSum(convertedFirst) + calculateEvenSum(convertedSecond) + calculateEvenSum(datePart + paddedAmount);
-
-            const oddChecksum = oddSum % 11 === 0 ? "A" : oddSum % 11 === 10 ? "B" : oddSum % 11;
-            const evenChecksum = evenSum % 11 === 0 ? "X" : evenSum % 11 === 10 ? "Y" : evenSum % 11;
-
-            const thirdBarcode = datePart + oddChecksum + evenChecksum + paddedAmount;
-            const qrData = `FAMI||{"bar1":"${firstBarcode}","bar2":"${secondBarcode}","bar3":"${thirdBarcode}","ID":"3A01"}`;
-
-            const qrWrapper = document.createElement("div");
-            qrWrapper.className = "qr-wrapper";
-
-            const header = document.createElement("div");
-            header.style.display = "flex";
-            header.style.justifyContent = "space-between";
-            header.style.width = "100%";
-
-            const idLabel = document.createElement("div");
-            idLabel.textContent = `超商繳費條碼_${i + 1}`;
-            idLabel.style.fontWeight = "bold";
-
-            const downloadBtn = document.createElement("div");
-            downloadBtn.textContent = "圖檔下載";
-            downloadBtn.style.color = "red";
-            downloadBtn.style.cursor = "pointer";
-            downloadBtn.style.fontWeight = "bold";
-
-            downloadBtn.onclick = () => {
-                const cleanWrapper = document.createElement("div");
-                cleanWrapper.style.display = "flex";
-                cleanWrapper.style.flexDirection = "column";
-                cleanWrapper.style.alignItems = "center";
-                cleanWrapper.style.padding = "10px";
-                cleanWrapper.style.border = "1px solid #ccc";
-                cleanWrapper.style.borderRadius = "8px";
-                cleanWrapper.style.backgroundColor = "#fff";
-
-                const idText = document.createElement("div");
-                idText.textContent = idLabel.textContent;
-                idText.style.fontWeight = "bold";
-                cleanWrapper.appendChild(idText);
-
-                const qrCanvas = qrWrapper.querySelector("canvas");
-                if (qrCanvas) {
-                    const qrClone = qrCanvas.cloneNode(true);
-                    cleanWrapper.appendChild(qrClone);
-                }
-
-                const tempContainer = document.createElement("div");
-                tempContainer.style.position = "fixed";
-                tempContainer.style.left = "-9999px";
-                document.body.appendChild(tempContainer);
-                tempContainer.appendChild(cleanWrapper);
-
-                html2canvas(cleanWrapper, { scale: 2 }).then(canvas => {
-                    const link = document.createElement("a");
-                    link.download = `${idLabel.textContent}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    document.body.removeChild(tempContainer);
-                });
-            };
-
-            header.appendChild(idLabel);
-            header.appendChild(downloadBtn);
-            qrWrapper.appendChild(header);
-
-            const qrDiv = document.createElement("div");
-            new QRCode(qrDiv, { text: qrData, width: 150, height: 150 });
-            qrWrapper.appendChild(qrDiv);
-
-            const desc = document.createElement("div");
-            desc.className = "barcode-description";
-            desc.innerHTML = `<div>${firstBarcode}</div><div>${secondBarcode}</div><div>${thirdBarcode}</div>`;
-            qrWrapper.appendChild(desc);
-
-            container.appendChild(qrWrapper);
-        }
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response === true) {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+          } else {
+            document.getElementById('loginMsg').innerText = '帳號或密碼錯誤';
+          }
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('loginMsg').innerText = '登入服務錯誤：' + error.message;
+        })
+        .checkLogin(account, password);
     }
   </script>
 </body>
