@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
@@ -145,15 +144,8 @@
   </style>
 </head>
 <body>
-    <div id="loginBox">
-      <h3>請先登入</h3>
-      <input id="loginAccount" type="text" placeholder="帳號" />
-      <input id="loginPassword" type="password" placeholder="密碼" />
-      <button onclick="login()">登入</button>
-      <div id="loginMsg"></div>
-    </div>
-
-      <div id="mainApp" style="display: none;">
+    <!-- 已移除登入區塊 -->
+      <div id="mainApp" style="display: block;">
         <div id="mainContent" style="width:100%;max-width:500px;margin:0 auto;">
           <div style="text-align: center; line-height: 1.8;">
       <p style="margin-bottom: 0.0em;">🚀 <strong>使用風險提醒</strong></p>
@@ -563,31 +555,6 @@
       });
     };
   }
-
-    // 請在 <script> 裡加上這段
-    function showCustomAlert(msg) {
-        document.getElementById('customAlertMsg').innerText = msg;
-        document.getElementById('customAlert').style.display = 'flex';
-    }
-
-    function login() {
-      const account = document.getElementById('loginAccount').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-
-      google.script.run
-        .withSuccessHandler(function(response) {
-          if (response === true) {
-            document.getElementById('loginBox').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-          } else {
-            document.getElementById('loginMsg').innerText = '帳號或密碼錯誤';
-          }
-        })
-        .withFailureHandler(function(error) {
-          document.getElementById('loginMsg').innerText = '登入服務錯誤：' + error.message;
-        })
-        .checkLogin(account, password);
-    }
   </script>
 </body>
 </html>
