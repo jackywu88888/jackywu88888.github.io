@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
@@ -112,7 +113,38 @@
       margin-top: 0.5rem;
       word-break: break-all;
     }
+    .barcode-description,
+    .qr-wrapper div[style*="font-size: 16px"] {
+  width: 150px;
+  margin: 8px auto 0 auto;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-align: center;
+  line-height: 1.6;
+  word-break: break-all;
+  left: unset !important;
+  transform: unset !important;
+}
 
+/* 手機版條碼區塊寬度自動調整並置中 */
+@media screen and (max-width: 600px) {
+  .qr-wrapper {
+    max-width: 95vw;
+    width: 100%;
+    align-items: center;
+  }
+  .barcode-description,
+  .qr-wrapper div[style*="font-size: 16px"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    left: unset !important;
+    transform: unset !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
     @media screen and (max-width: 600px) {
       .qr-wrapper {
         width: 100%;
