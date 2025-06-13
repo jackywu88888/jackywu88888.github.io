@@ -532,29 +532,27 @@ document.getElementById('downloadAllBtn').onclick = async function() {
   const wrappers = document.querySelectorAll('.qr-wrapper');
   if (!wrappers.length) return;
 
+  // 先暫時隱藏所有 barcode-description
+  wrappers.forEach(w => {
+    const desc = w.querySelector('.barcode-description');
+    if (desc) desc.style.display = 'none';
+  });
+
   const zip = new JSZip();
   for (let i = 0; i < wrappers.length; i++) {
-    // 複製一份 wrapper
-    const clone = wrappers[i].cloneNode(true);
-
-    // 加上 download-mode class 隱藏三段條碼說明
-    clone.classList.add('download-mode');
-
-    // 建立暫時的 div 放 clone
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'fixed';
-    tempDiv.style.left = '-9999px';
-    tempDiv.appendChild(clone);
-    document.body.appendChild(tempDiv);
-
-    // 轉成圖片
-    const canvas = await html2canvas(clone, { scale: 2 });
+    // 直接對原本的 DOM 節點做 html2canvas
+    const canvas = await html2canvas(wrappers[i], { scale: 2 });
     const dataUrl = canvas.toDataURL('image/png');
     const imgData = dataUrl.split(',')[1];
     zip.file(`QRCode_${i+1}.png`, imgData, {base64: true});
-
-    document.body.removeChild(tempDiv);
   }
+
+  // 還原顯示 barcode-description
+  wrappers.forEach(w => {
+    const desc = w.querySelector('.barcode-description');
+    if (desc) desc.style.display = '';
+  });
+
   zip.generateAsync({type: "blob"}).then(function(content) {
     saveAs(content, "QRCodes.zip");
   });
