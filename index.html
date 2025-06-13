@@ -105,7 +105,16 @@
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      font-family: Arial, "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
+      width: 260px !important;
+      max-width: 260px !important;
+      min-width: 260px !important;
+      box-sizing: border-box;
     }
+
+    .qr-wrapper * {
+  font-family: inherit !important;
+}
 
     .barcode-description {
       font-size: 0.9rem;
@@ -249,6 +258,12 @@
 }
 .download-mode .barcode-description {
   display: none !important;
+}
+.download-mode {
+  width: 260px !important;
+  max-width: 260px !important;
+  min-width: 260px !important;
+  font-family: Arial, "Noto Sans TC", "Microsoft JhengHei", sans-serif !important;
 }
   </style>
 </head>
@@ -532,25 +547,26 @@ document.getElementById('downloadAllBtn').onclick = async function() {
   const wrappers = document.querySelectorAll('.qr-wrapper');
   if (!wrappers.length) return;
 
-  // 先暫時隱藏所有 barcode-description
+  // 先暫時隱藏所有 barcode-description，並加上 download-mode class
   wrappers.forEach(w => {
     const desc = w.querySelector('.barcode-description');
     if (desc) desc.style.display = 'none';
+    w.classList.add('download-mode');
   });
 
   const zip = new JSZip();
   for (let i = 0; i < wrappers.length; i++) {
-    // 直接對原本的 DOM 節點做 html2canvas
-    const canvas = await html2canvas(wrappers[i], { scale: 2 });
+    const canvas = await html2canvas(wrappers[i], { scale: 2, useCORS: true });
     const dataUrl = canvas.toDataURL('image/png');
     const imgData = dataUrl.split(',')[1];
     zip.file(`QRCode_${i+1}.png`, imgData, {base64: true});
   }
 
-  // 還原顯示 barcode-description
+  // 還原顯示 barcode-description，移除 download-mode class
   wrappers.forEach(w => {
     const desc = w.querySelector('.barcode-description');
     if (desc) desc.style.display = '';
+    w.classList.remove('download-mode');
   });
 
   zip.generateAsync({type: "blob"}).then(function(content) {
